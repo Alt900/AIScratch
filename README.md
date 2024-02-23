@@ -6,6 +6,9 @@ DNN with modular activation functions, loss functions, layers, neuron count and 
 
 ### Roadmap
 Deep neural networks 
+
 Convolutional neural networks with its ResNet and DenseNet variants
+
 Recurrent neural networks
+
 Long short-term memory networks
