@@ -26,14 +26,11 @@ This network is the foundation for most architectures from here forward, a multi
 
 ## Currently under construction
 ### Convolutional neural network
-This network expands upon the DNN by processing images through convolution and max pooling operations to highlight certain features in an image to better guide the DNN. Currently the project has the convolution layer implemente with some interisting results:
-![w2](https://github.com/Alt900/AIScratch/assets/146238918/adbebf8f-9aba-4111-8685-68fdb05dea97)
-![w3](https://github.com/Alt900/AIScratch/assets/146238918/1c8e5ede-a2d5-497d-aa6d-feee625ff7eb)
-![9k](https://github.com/Alt900/AIScratch/assets/146238918/51be58ef-5ac1-4d0d-a5d1-73008bf49eba)
+This network expands upon the DNN by processing images through convolution and max pooling operations to highlight certain features in an image to better guide the DNN. Currently the project has a completed forward pass with 2D Convolution using the fast fourier transform and the inverse fast fourier transform alongside minimum and maximum 2D pooling. 
+![f4_Conv1](https://github.com/Alt900/AIScratch/assets/146238918/20f91e34-49a5-43a2-9bed-09846dc8d773)
+![f4_Conv2](https://github.com/Alt900/AIScratch/assets/146238918/a32e6a02-3039-4d16-868c-6c4d3ffa57e0)
+![f4_MaxPooling2D_2](https://github.com/Alt900/AIScratch/assets/146238918/0d3b0fc3-c0f4-4df3-808d-ea282bc9a335)
 
-![watermelon_w2_FFTC](https://github.com/Alt900/AIScratch/assets/146238918/450bb80a-e782-453b-8703-71e363c66688)
-![watermelon_w3_FFTC](https://github.com/Alt900/AIScratch/assets/146238918/f3f2781f-2b8e-4061-9e2f-f640ca754be0)
-![Captures_9k_FFTC](https://github.com/Alt900/AIScratch/assets/146238918/1878be25-2dea-47ad-8b66-d92a116c919d)
 
 ## Future projects
 ### Recurrent neural network
