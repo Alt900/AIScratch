@@ -12,6 +12,24 @@ plt.rcParams['axes.labelcolor']="green"
 plt.rcParams['xtick.color']="green"
 plt.rcParams['ytick.color']="green"
 
+class Tools():
+    def __init__(self):
+        self.lossplot=plt
+        self.lossplot.xlabel("Epoch")
+        self.lossplot.ylabel("Loss")
+
+    def plot_loss(self,L,_,color='g'):
+        if _==0:
+            self.lossplot.plot(_,L)
+        else:
+            self.lossplot.plot([_-1,_],[self.previousloss,L],color)
+        self.previousloss=L
+
+    def generate_report(self,network):
+        r=[]
+        for x in network["hidden_layers"]:
+            r.append(f"internal hyperparameter shapes for hidden layer {x}:\nweights: {network['hidden_layers'][x]['weights'].shape}\nbias: {network['hidden_layers'][x]['bias'].shape}")
+        return r
 
 class Network():
     def __init__(self,
@@ -20,7 +38,11 @@ class Network():
         label_vector,
         alpha,#learning rate for backpropagation
         epochs,
-        seed
+        seed,
+        backpropagation_method,
+        epsilon=None,
+        rho=None,
+        stoploss=0
     ):
         #input processing
         self.input_vector=input_vector
@@ -35,9 +57,17 @@ class Network():
         #hyperparamaters
         self.alpha=alpha
         self.epochs=epochs
+        self.epsilon=epsilon
+        self.rho=rho
+        self.stoploss=stoploss
+
+        self.tool=Tools()
 
         #set a seed for numpy generation to get reproducable results from random weight and bias generation
         np.random.seed(seed)
+
+        #backpropagation type
+        self.backpropagation_method=backpropagation_method.lower()
 
         self.initialization={
             "Xavier":lambda i,o: np.random.uniform(low=-np.sqrt(6/(i+o)),high=np.sqrt(6/(i+o)),size=(o,i)),
@@ -82,7 +112,7 @@ class Network():
 
     def generate_report(self):
         r=[]
-        for x in OBJ.network["hidden_layers"]:
+        for x in self.network["hidden_layers"]:
             r.append(f"internal hyperparameter shapes for hidden layer {x}:\nweights: {self.network['hidden_layers'][x]['weights'].shape}\nbias: {self.network['hidden_layers'][x]['bias'].shape}")
         return r
 
@@ -102,7 +132,7 @@ class Network():
             stable_exponential=np.exp(vector-np.max(vector))#prevent infinite overflow and underflow
             return stable_exponential/np.sum(stable_exponential)
         
-    def backpropagation(self,i):
+    def backpropagation(self,i,epoch):
         DL=self.network["output_layer"]["activated_state"]-self.True_Label[i]
         for x in reversed(range(1,len(self.network["hidden_layers"])+1)):
             if x==len(self.network["hidden_layers"]):
@@ -112,14 +142,26 @@ class Network():
                         DL
                     ),
                     self.Softmax(self.network["output_layer"]["z_state"],True)
-                )
-                print(DW.shape)
-                exit()
+                ).astype(np.float64)
 
-                DB=np.sum(DW.T,axis=1,keepdims=True)
+                DB=np.sum(DW.T,axis=1,keepdims=True).astype(np.float64)
 
-                self.network["output_layer"]["weights"]=(self.network["output_layer"]["weights"].T-self.alpha*DW).T
-                self.network["output_layer"]["bias"]=self.network["output_layer"]["bias"]-self.alpha*DB
+
+                if self.backpropagation_method=="rmsprop":
+                    if epoch==0:
+                        self.ACCSG_W=self.rho*0+(1-self.rho)*(sum(sum(DW**2)))
+                        self.ACCSG_B=self.rho*0+(1-self.rho)*(sum(DB**2))
+                    else:
+                        self.ACCSG_W=self.rho*self.ACCSG_W+(1-self.rho)*(sum(sum(DW**2)))
+                        self.ACCSG_B=self.rho*self.ACCSG_B+(1-self.rho)*(sum(DB**2))
+
+                    self.network["output_layer"]["weights"]=(self.network["output_layer"]["weights"].T-self.alpha*DW/(np.sqrt(self.ACCSG_W)+self.epsilon)).T
+                    self.network["output_layer"]["bias"]=(self.network["output_layer"]["bias"]-self.alpha)*DB/(np.sqrt(self.ACCSG_B)+self.epsilon)
+
+                else:
+                    self.network["output_layer"]["weights"]=(self.network["output_layer"]["weights"].T-self.alpha*DW).T
+                    self.network["output_layer"]["bias"]=self.network["output_layer"]["bias"]-self.alpha*DB
+
 
                 DA=np.multiply(
                     self.network["output_layer"]["weights"].T.dot(DW.T),
@@ -127,11 +169,20 @@ class Network():
                         self.network["hidden_layers"][x]["z_state"],True
                     )
                 )
+
                 DW=DA.T.dot(self.network["hidden_layers"][x]["activated_state"])
                 DB=DW
 
-                self.network["hidden_layers"][x]["weights"]=(self.network["hidden_layers"][x]["weights"].T-self.alpha*DW).T
-                self.network["hidden_layers"][x]["bias"]=(self.network["hidden_layers"][x]["bias"].T-self.alpha*DB).reshape(len(DB),1)
+                if self.backpropagation_method=="rmsprop":
+                    self.ACCSG_W=self.rho*self.ACCSG_W+(1-self.rho)*(sum(DW**2))
+                    self.ACCSG_B=self.rho*self.ACCSG_B+(1-self.rho)*(sum(DB**2))
+
+                    self.network["hidden_layers"][x]["weights"]=(self.network["hidden_layers"][x]["weights"].T-self.alpha*DW/(np.sqrt(self.ACCSG_W)+self.epsilon)).T
+                    self.network["hidden_layers"][x]["bias"]=(self.network["hidden_layers"][x]["bias"].T-self.alpha*DB/(np.sqrt(self.ACCSG_B)+self.epsilon)).reshape(len(DB),1)
+
+                else:
+                    self.network["hidden_layers"][x]["weights"]=(self.network["hidden_layers"][x]["weights"].T-self.alpha*DW).T
+                    self.network["hidden_layers"][x]["bias"]=(self.network["hidden_layers"][x]["bias"].T-self.alpha*DB).reshape(len(DB),1)
 
             elif x!=len(self.network["hidden_layers"]) and x!=1:
                 DW=np.multiply(
@@ -140,10 +191,20 @@ class Network():
                         self.network["hidden_layers"][x]["z_state"],True
                     )
                 )
+
                 DW=DW*(self.network["hidden_layers"][x]["activated_state"])
                 DB=DW
-                self.network["hidden_layers"][x]["weights"]=(self.network["hidden_layers"][x]["weights"].T-self.alpha*DW).T
-                self.network["hidden_layers"][x]["bias"]=(self.network["hidden_layers"][x]["bias"].T-self.alpha*DB).reshape(len(DB),1)
+
+                if self.backpropagation_method=="rmsprop":
+                    self.ACCSG_W=self.rho*self.ACCSG_W+(1-self.rho)*(sum(DW**2))
+                    self.ACCSG_B=self.rho*self.ACCSG_B+(1-self.rho)*(sum(DB**2))
+
+                    self.network["hidden_layers"][x]["weights"]=((self.network["hidden_layers"][x]["weights"].T-self.alpha)*DW/(np.sqrt(self.ACCSG_W)+self.epsilon)).T
+                    self.network["hidden_layers"][x]["bias"]=(self.network["hidden_layers"][x]["bias"].T-self.alpha*DB/(np.sqrt(self.ACCSG_B)+self.epsilon)).reshape(len(DB),1)
+
+                else:
+                    self.network["hidden_layers"][x]["weights"]=(self.network["hidden_layers"][x]["weights"].T-self.alpha*DW).T
+                    self.network["hidden_layers"][x]["bias"]=(self.network["hidden_layers"][x]["bias"].T-self.alpha*DB).reshape(len(DB),1)
 
             else:
                 pass
@@ -240,49 +301,15 @@ class Network():
                     )+self.network["output_layer"]["bias"][y])
                 self.network["output_layer"]["z_state"]=z
                 self.network["output_layer"]["activated_state"]=self.Softmax(z)
-                self.backpropagation(i)
+                self.backpropagation(i,_)
 
             Loss=-np.sum(self.True_Label[i] * np.log(self.network["output_layer"]["activated_state"]))
-            plt.plot(_,Loss,'go')
-            print(f'Loss: {Loss} on epoch {_}')
-        plt.xlabel("Epoch")
-        plt.ylabel("Loss")
-        plt.title("Gradient descent direction")
-        plt.show()
+            if Loss<self.stoploss:
+                print(f"Stoploss met at epoch {_} on a loss of {Loss}")
+                self.tool.plot_loss(Loss,_,'r')
+                break
 
-
-data=np.array(pd.read_csv("train.csv"))
-np.random.shuffle(data)
-m,n=data.shape
-#m=number of examples
-#n=number of labels
-data.T
-#here we want to take 80% of the dataset in order to train it and 20% to validate
-#however this is computationally demanding for a first pass 
-#so we will be taking 32 images for training or 0.076% of the data
-Y_train=np.array([int(data[x][:1]) for x in range(round(len(data)*.00076))])
-X_train=np.array([data[x][1:]/n-1 for x in range(round(len(data)*.00076))])
-
-
-#pull the next image from the randomized dataset
-#a batch size of 33 will be 0.078%
-Y_test=np.array([int(data[x][:1]) for x in range(round(len(data)*.00078))])[-1]
-X_test=np.array([data[x][1:]/n-1 for x in range(round(len(data)*.00078))])[-1]
-OBJ = Network(
-    X_train,#normalized image data
-    Y_train,#true label vector
-    [0,1,2,3,4,5,6,7,8,9],#label vector for one-hot comparison
-    0.0037,#learning rate
-    40,#epochs
-    11#seed for numpy random
-)
-OBJ.initialize_layers(84,2,["ReLU","Tanh"])
-OBJ.Train()
-results=OBJ.generate_report()
-for x in results:
-    print(x)
-print(f"Network prediction {OBJ.get_prediction(X_test)}")
-print(f"Real label: {Y_test}")
-d=np.delete(data[32],0).reshape(28,28)
-plt.imshow(d,cmap='gray', vmin=0, vmax=255)
-plt.show()
+            print(f"Loss {Loss} at epoch {_}")
+            self.tool.plot_loss(Loss,_)
+        self.tool.lossplot.title(f"{self.backpropagation_method} direction")
+        self.tool.lossplot.show()
