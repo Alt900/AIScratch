@@ -7,7 +7,7 @@ that is introduced to beginners in something such as tensorflow.
 
 
 This project aims to help guide beginners into developing a concrete foundational understanding of artificial intelligence, its underlying mathematics, the relative concepts, 
-and important deep-level issues causing limitations in modern models sucha as global minima in gradient descent, escaping local minima points, avoiding dead gradients/dead neurons, ect. 
+and important deep-level issues causing limitations in modern models such as global minima in gradient descent, escaping local minima points, avoiding dead gradients/dead neurons, ect. 
 
 ## Currently completed projects:
 ### Deep Neural Network
@@ -26,10 +26,13 @@ This network is the foundation for most architectures from here forward, a multi
 
 ## Currently under construction
 ### Convolutional neural network
-This network expands upon the DNN by processing images through convolution and max pooling operations to highlight certain features in an image to better guide the DNN. Currently the project has a completed forward pass with 2D Convolution using the fast fourier transform and the inverse fast fourier transform alongside minimum and maximum 2D pooling. 
+This network expands upon the DNN by processing images through convolution and max pooling operations to highlight certain features in an image to better guide the DNN. Currently the project has a completed forward pass with 2D Convolution using the fast fourier transform and the inverse fast fourier transform alongside minimum and maximum 2D pooling. As for backpropagation the 2D Convolution is handled through a slight modification of the DNN backpropagation methods to handle additional dimensions in the bias terms, as for pooling backpropagation the masks are generated to propagate the gradient through pooling and the images are loaded during backpropagation to tell the network where to propagate the error through
 ![f4_Conv1](https://github.com/Alt900/AIScratch/assets/146238918/20f91e34-49a5-43a2-9bed-09846dc8d773)
 ![f4_Conv2](https://github.com/Alt900/AIScratch/assets/146238918/a32e6a02-3039-4d16-868c-6c4d3ffa57e0)
 ![f4_MaxPooling2D_2](https://github.com/Alt900/AIScratch/assets/146238918/0d3b0fc3-c0f4-4df3-808d-ea282bc9a335)
+
+![f1_Max_1_mask](https://github.com/Alt900/AIScratch/assets/146238918/3a50dedd-5ea4-47bb-a3d3-cb02f1e612f2)
+
 
 
 ## Future projects
