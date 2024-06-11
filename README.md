@@ -20,18 +20,10 @@ This network is the foundation for most architectures from here forward, a multi
 * calculating loss metrics
 * backpropagation, the relevant calculus, and gradients
 
-  ![AIScratch_Deep Feed Forward Neural Network from scratch ipynb at main · Alt900_AIScratch — Mozilla Firefox 4_13_2024 10_38_09 PM](https://github.com/Alt900/AIScratch/assets/146238918/958eaced-3866-44e6-82e9-eb448e499bd1)
-![AIScratch_Deep Feed Forward Neural Network from scratch ipynb at main · Alt900_AIScratch — Mozilla Firefox 4_13_2024 10_38_13 PM](https://github.com/Alt900/AIScratch/assets/146238918/4db636c6-b1e6-42a0-b7e1-43be31c753c7)
-
 
 ## Currently under construction
 ### Convolutional neural network
 This network expands upon the DNN by processing images through convolution and max pooling operations to highlight certain features in an image to better guide the DNN. Currently the project has a completed forward pass with 2D Convolution using the fast fourier transform and the inverse fast fourier transform alongside minimum and maximum 2D pooling. As for backpropagation the 2D Convolution is handled through a slight modification of the DNN backpropagation methods to handle additional dimensions in the bias terms, as for pooling backpropagation the masks are generated to propagate the gradient through pooling and the images are loaded during backpropagation to tell the network where to propagate the error through
-![f4_Conv1](https://github.com/Alt900/AIScratch/assets/146238918/20f91e34-49a5-43a2-9bed-09846dc8d773)
-![f4_Conv2](https://github.com/Alt900/AIScratch/assets/146238918/a32e6a02-3039-4d16-868c-6c4d3ffa57e0)
-![f4_MaxPooling2D_2](https://github.com/Alt900/AIScratch/assets/146238918/0d3b0fc3-c0f4-4df3-808d-ea282bc9a335)
-
-![f1_Max_1_mask](https://github.com/Alt900/AIScratch/assets/146238918/3a50dedd-5ea4-47bb-a3d3-cb02f1e612f2)
 
 
 
